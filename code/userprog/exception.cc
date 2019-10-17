@@ -70,12 +70,14 @@ ExceptionHandler(ExceptionType which)
         switch (type)
         {
         case SC_Halt:
-             DEBUG('a', "Shutdown, initiated by user program.\n");
+            DEBUG('a', "Shutdown, initiated by user program.\n");
+            printf(" System Call: %d invoked Halt", currentThread->getPid());
             interrupt->Halt();
             break;
 
         case SC_Exit:
             DEBUG('a', "Exit, initiated by user program.\n");
+            printf(" System Call: %d invoked Exit", currentThread->getPid());
 			status = machine->ReadRegister(4);
             printf("Process %d exits with status %d\n",currentThread->getPid(),status);
 			
@@ -87,38 +89,47 @@ ExceptionHandler(ExceptionType which)
 
         case SC_Exec:
             DEBUG('a', "Exec, initiated by user program.\n");
+            printf(" System Call: %d invoked Exec", currentThread->getPid());
             break;
 
         case SC_Join:
             DEBUG('a', "Join, initiated by user program.\n");
+            printf(" System Call: %d invoked Join", currentThread->getPid());
             break;
 
         case SC_Create:
             DEBUG('a', "Create, initiated by user program.\n");
+            printf(" System Call: %d invoked Create", currentThread->getPid());
             break;
         
         case SC_Open:
             DEBUG('a', "Open, initiated by user program.\n");
+            printf(" System Call: %d invoked Open", currentThread->getPid());
             break;
 
         case SC_Read:
             DEBUG('a', "Read, initiated by user program.\n");
+            printf(" System Call: %d invoked Read", currentThread->getPid());
             break;
 
         case SC_Write:
             DEBUG('a', "Write, initiated by user program.\n");
+            printf(" System Call: %d invoked Write", currentThread->getPid());
             break;
 
         case SC_Close:
             DEBUG('a', "Close, initiated by user program.\n");
+            printf(" System Call: %d invoked Close", currentThread->getPid());
             break;
 
         case SC_Fork:
             DEBUG('a', "Fork, initiated by user program.\n");
+            printf(" System Call: %d invoked Fork", currentThread->getPid());
             break;
 
         case SC_Yield:
             DEBUG('a', "Yield, initiated by user program.\n");
+            printf(" System Call: %d invoked Yield", currentThread->getPid());
             break;
         
         default:
