@@ -1,0 +1,6 @@
+Group 7: Fatima Afzali, David Gaspe, Wendy Orellana, Liz Piedra
+Question 1: Completed 
+Question 2: Completed
+(The preprocessor directives have likely been misplaced for questions 1 and 2).
+Question 3: Completed, though the conversion from void* to Semaphore* may have created bugs in question 4. 
+Question 4: Partially complete: the people arrive and make requests on their individual threads, but the elevator does not pick them up or transport them. This is likely a bug in the Lock and Condition logic, though we can't identify it. 

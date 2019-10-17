@@ -1,0 +1,8 @@
+Group 8: Fatima Afzali, Aysha Habbaba
+(a) Experience installing Nachos
+Working on my own Linux computer (running Ubuntu 18.04), installing Nachos was painless. After installing gcc-multilib with apt-get, everything worked as intended. 
+(b) Experience with tests
+The threads test worked. The halt test worked as well, with the Halt() system call ending the program early. Running it in single step mode also worked. 
+(c) The Thread class
+If processes are the atoms of computation, threads are the nucleons: while processes are used to run individual programs, each process can contain multiple threads, all of which share an address space distinct from that of any other process. In Nachos, threads are implemented as objects of a Thread class; all threads of the same process execute the same code (possibly with different local variables, though they share the same global variables), and can occupy four different states: READY, RUNNING, BLOCKED, and JUST_CREATED. Threads are generally manipulated as pointers (since Nachos doesn't maintain any sort of centralized thread table), and the Thread class allows for forking, stack allocation, sleeping, termination, and suspension. 
+
