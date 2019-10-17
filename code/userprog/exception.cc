@@ -48,16 +48,86 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+void AdjustPC()
+{
+  int pc;
+
+  pc = machine->ReadRegister(PCReg);
+  machine->WriteRegister(PrevPCReg, pc);
+  pc = machine->ReadRegister(NextPCReg);
+  machine->WriteRegister(PCReg, pc);
+  pc += 4;
+  machine->WriteRegister(NextPCReg, pc);
+  
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
+    if ((which == SyscallException){
+        switch (type)
+        {
+        case SC_Halt:
+             DEBUG('a', "Shutdown, initiated by user program.\n");
+            interrupt->Halt();
+            break;
+
+        case SC_Exit:
+            DEBUG('a', "Exit, initiated by user program.\n");
+			status = machine->ReadRegister(4);
+            printf("Process %d exits with status %d\n",currentThread->getPid(),status);
+			
+            currentThread->space->ReleaseMemory();
+            delete currentThread->space;
+
+            currentThread->Finish();
+            break;
+
+        case SC_Exec:
+            DEBUG('a', "Exec, initiated by user program.\n");
+            break;
+
+        case SC_Join:
+            DEBUG('a', "Join, initiated by user program.\n");
+            break;
+
+        case SC_Create:
+            DEBUG('a', "Create, initiated by user program.\n");
+            break;
+        
+        case SC_Open:
+            DEBUG('a', "Open, initiated by user program.\n");
+            break;
+
+        case SC_Read:
+            DEBUG('a', "Read, initiated by user program.\n");
+            break;
+
+        case SC_Write:
+            DEBUG('a', "Write, initiated by user program.\n");
+            break;
+
+        case SC_Close:
+            DEBUG('a', "Close, initiated by user program.\n");
+            break;
+
+        case SC_Fork:
+            DEBUG('a', "Fork, initiated by user program.\n");
+            break;
+
+        case SC_Yield:
+            DEBUG('a', "Yield, initiated by user program.\n");
+            break;
+        
+        default:
+            printf("Unexpected system call %d\n", type);
+            break;
+        }
     } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+        printf("Unexpected user mode exception %d\n", which);
+        ASSERT(FALSE);
     }
+    AdjustPC();
 }
