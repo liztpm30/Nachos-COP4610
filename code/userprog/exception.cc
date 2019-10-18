@@ -66,7 +66,7 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException){
+    if (which == SyscallException){
         switch (type)
         {
         case SC_Halt:
