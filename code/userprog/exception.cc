@@ -62,11 +62,13 @@ void AdjustPC()
   
 }
 
+void Exit();
+void Join();
+
 void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-    int status;
 
     if (which == SyscallException){
         switch (type)
@@ -78,15 +80,7 @@ ExceptionHandler(ExceptionType which)
             break;
 
         case SC_Exit:
-            DEBUG('a', "Exit, initiated by user program.\n");
-            printf(" System Call: %d invoked Exit", getpid());
-			status = machine->ReadRegister(4);
-            printf("Process %d exits with status %d\n",getpid(),&status);
-			
-            // currentThread->space->ReleaseMemory();
-            // delete currentThread->space;
-
-            currentThread->Finish();
+            Exit();
             break;
 
         case SC_Exec:
@@ -95,8 +89,7 @@ ExceptionHandler(ExceptionType which)
             break;
 
         case SC_Join:
-            DEBUG('a', "Join, initiated by user program.\n");
-            printf(" System Call: %d invoked Join", getpid());
+            Join();
             break;
 
         case SC_Create:
@@ -143,4 +136,39 @@ ExceptionHandler(ExceptionType which)
         ASSERT(FALSE);
     }
     AdjustPC();
+}
+
+void Exit(){
+
+    DEBUG('a', "Exit, initiated by user program.\n");
+    printf(" System Call: %d invoked Exit", getpid());
+
+    int status = machine->ReadRegister(4);
+
+    printf("Process %d exits with status %d\n",getpid(),&status);
+
+    currentThread->Finish();
+}
+
+void Join (){
+
+    DEBUG('a', "Join, initiated by user program.\n");
+    printf(" System Call: %d invoked Join", getpid());
+
+    // Read process id from register r4
+    int processId = machine->ReadRegister(4);
+    int processExitId;
+
+    // Make sure the requested process id is the child process of the current process
+    /* NEED TO BE IMPLEMENT */
+
+    //Keep on checking if the requested process is finished. if not, yield the current process
+    /* NEED TO BE IMPLEMENT */
+
+    // If the requested process finished, write the requested process exit id to register r2 to return it.
+
+    /*save process exit ID into processExitId after PCB is implemented*/
+    /* NEED TO BE IMPLEMENT */
+    machine->WriteRegister(2,processExitId);
+
 }
