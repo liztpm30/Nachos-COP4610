@@ -270,3 +270,40 @@ AddrSpace::ReadFile(int virtAddr, OpenFile* file, int size, int fileAddr)
     }
     return currSize;
 }
+//----------------------------------------------------------------------
+// Memory Manager Implementation
+//----------------------------------------------------------------------
+
+/* Constructor */
+
+MemoryManager::MemoryManager(int numTotalPages) {  
+  
+  pages = new BitMap(numpages);
+  lock = new Lock("Memory Manager");
+}
+
+/* Destructor */
+
+MemoryManager::~MemoryManager() {
+  delete pages;
+  pages = 0;
+  delete lock;  
+}
+
+/* Page allocation */
+
+int MemoryManager::getPage() {
+  lock->Acquire();
+  int page = pages->Find();  
+  lock->Release();
+
+  return page;
+}
+
+/* Clear page */
+
+void MemoryManager::clearPage(int pageId) {
+  lock->Acquire();
+  pages->Clear(physPageNum);
+  lock->Release();
+}
