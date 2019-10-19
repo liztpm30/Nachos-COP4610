@@ -237,3 +237,36 @@ int AddrSpace::Translate(int virtAddr)
 
     return physAddr;
 }
+
+//----------------------------------------------------------------------
+// AddrSpace::ReadFile
+//      Loads the code from a file and data segments into the translated
+//      memory, instead of at position 0.
+//
+//      "virtAddr" - the virtual address to translate
+//      "physAddr" - the place to store teh physical address
+//      "size" - the amount of memory being read or written
+//      "file" - file that holds the code
+//----------------------------------------------------------------------
+
+int
+AddrSpace::Translate(int virtAddr, OpenFile* file, int size, int fileAddr)
+{
+    char buff[size];
+    int currSize = file->ReadAt(buff, size, fileAddr);
+    int currSizeCopy = currSize;
+    int copied = 0, newSize = 0, phyAddr;
+
+    while (currSizeCopy > 0) {
+        // convert the virtAddr given into phyAddr
+        phyAddr = Translate(virtAddr);
+
+        newSize = min(PageSize, currSizeCopy);
+        bcopy(buff+copied, &machine->mainMemory[phyAddr], newSize);
+
+        virtAddr = virtAddr + newSize;
+        currSizeCopy = currSizeCopy - newSize;
+        copied = copied + newSize;
+    }
+    return currSize;
+}
