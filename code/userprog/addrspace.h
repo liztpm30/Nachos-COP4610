@@ -15,6 +15,8 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include “synch.h”
+#include “bitmap.h”
 
 #define UserStackSize		1024 	// increase this as necessary!
 
@@ -30,18 +32,37 @@ class AddrSpace {
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
-	
+
     int Translate(int virtAddr);	// Converts virtAddr to physAddr
     int ReadFile(int virtAddr,		// Reads a file and loads the code
-		 OpenFile* file,	// and data segments into translated
-		 int size,		// memory
-		 int fileAddr);
+		              OpenFile* file,	// and data segments into translated
+		              int size,		    // memory
+		              int fileAddr);
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
-					// for now!
-    unsigned int numPages;		// Number of pages in the virtual 
+					                        // for now!
+    unsigned int numPages;		    // Number of pages in the virtual 
 					// address space
+};
+
+class MemoryManager {
+
+public:
+  MemoryManager(int numTotalPages);
+
+  ~MemoryManager();
+
+  /* allocates the first clear page */
+  int getPage();
+  
+  /* Takes the index of a page and frees it.*/
+  void clearPage(int pageId);
+
+private:
+  BitMap * pages;  // tracks allocation
+  Lock * lock;
+  
 };
 
 #endif // ADDRSPACE_H
