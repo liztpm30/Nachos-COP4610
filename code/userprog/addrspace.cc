@@ -250,7 +250,7 @@ int AddrSpace::Translate(int virtAddr)
 //----------------------------------------------------------------------
 
 int
-AddrSpace::Translate(int virtAddr, OpenFile* file, int size, int fileAddr)
+AddrSpace::ReadFile(int virtAddr, OpenFile* file, int size, int fileAddr)
 {
     char buff[size];
     int currSize = file->ReadAt(buff, size, fileAddr);
