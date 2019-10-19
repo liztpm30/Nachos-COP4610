@@ -186,6 +186,92 @@ void AddrSpace::RestoreState()
 }
 
 //----------------------------------------------------------------------
+// AddrSpace::Translate
+//      Converts a virtual address to a physical address. It uses
+//      a page table. First, it checks for alignment errors and then
+//      if everything is ok, it sets the dirty bits in the table
+//      entry and stores the translated physical address in 'physAddr'.
+//      Returns exception if there's an error.
+//
+//      "virtAddr" - the virtual address to translate
+//      "physAddr" - the place to store teh physical address
+//      "size" - the amount of memory being read or written
+//----------------------------------------------------------------------
+
+int AddrSpace::Translate(int virtAddr)
+{
+    // Create a physical address
+    int size;
+    int physAddr;
+    bool writing;
+    int vpn = (unsigned) virtAddr / PageSize;
+    int offset = (unsigned) virtAddr % PageSize;
+    TranslationEntry *entry;
+    unsigned int pageFrame;
+
+    DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ?
+                "write" : "read");
+
+    // Calculate the page number and offset within the page from
+    // the virtual address
+    if (vpn >= numPages) {
+        DEBUG('a', "Virtual page # %d too large for numPages %d!\n",
+            virtAddr, numPages);
+        return -1;
+    }
+    if (!pageTable[vpn].valid) {
+        DEBUG('a', "Virtual page # %d is not valid!\n",
+            virtAddr);
+        return -1;
+    }
+    entry = &pageTable[vpn];
+
+    pageFrame = entry->physicalPage;
+
+    // set the use, dirty bits
+    entry->use = TRUE;
+    if (writing)
+        entry->dirty = TRUE;
+    physAddr = pageFrame * PageSize + offset;
+    DEBUG('a', "translate vpn %d to pfn %d\n", virtAddr, physAddr);
+
+    return physAddr;
+}
+
+//----------------------------------------------------------------------
+// AddrSpace::ReadFile
+//      Loads the code from a file and data segments into the translated
+//      memory, instead of at position 0.
+//
+//      "virtAddr" - the virtual address to translate
+//      "physAddr" - the place to store teh physical address
+//      "size" - the amount of memory being read or written
+//      "file" - file that holds the code
+//----------------------------------------------------------------------
+
+int
+AddrSpace::ReadFile(int virtAddr, OpenFile* file, int size, int fileAddr)
+{
+    char buff[size];
+    int currSize = file->ReadAt(buff, size, fileAddr);
+    int currSizeCopy = currSize;
+    int copied = 0, newSize = 0, phyAddr;
+
+    while (currSizeCopy > 0) {
+        // convert the virtAddr given into phyAddr
+        phyAddr = Translate(virtAddr);
+
+        newSize = min(PageSize, currSizeCopy);
+        bcopy(buff+copied, &machine->mainMemory[phyAddr], newSize);
+
+        virtAddr = virtAddr + newSize;
+        currSizeCopy = currSizeCopy - newSize;
+        copied = copied + newSize;
+    }
+    return currSize;
+}
+
+//----------------------------------------------------------------------
 // Memory Manager Implementation
 //----------------------------------------------------------------------
 
