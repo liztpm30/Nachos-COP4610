@@ -32,6 +32,10 @@ class AddrSpace {
     void RestoreState();		// info on a context switch 
 	
     int Translate(int virtAddr);	// Converts virtAddr to physAddr
+    int ReadFile(int virtAddr,		// Reads a file and loads the code
+		 OpenFile* file,	// and data segments into translated
+		 int size,		// memory
+		 int fileAddr);
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
