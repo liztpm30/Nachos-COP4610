@@ -24,6 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "filesys.h"
+
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -60,6 +62,9 @@ void AdjustPC()
   machine->WriteRegister(NextPCReg, pc);
   
 }
+
+void Fork(void (*func));
+void Exec(OpenFile* executable);
 
 void
 ExceptionHandler(ExceptionType which)
@@ -141,4 +146,100 @@ ExceptionHandler(ExceptionType which)
         ASSERT(FALSE);
     }
     AdjustPC();
+}
+
+void Fork (void (*func)) {
+    DEBUG('a', "Fork initiated by user.\n");
+    
+    // Create pcb manager
+    PCBManager * manager;
+    
+    // Save old registers
+    currentThread->space->SaveState();
+    int pid = manager->getPID
+    
+    // Create new address space & copy old to new
+    AddrSpace * newSpace;
+    newSpace = currentThread->space->Fork(pid);
+    
+    // Create new thread
+    Thread * newThread = new Thread("Forked Thread");
+    
+    // Create pcb and associate new address
+    PCB * pcb = new PCB(newThread, pid, currentThread);
+    
+    // Complete the PCB and add parent id, etc
+    
+    // Create program counter
+    int pCounter = machine->ReadRegister(4);
+    
+    // Copy old values into new thread
+    for (int i = 0; i < numTotalRegs; i++) {
+        newThread->SetUserRegister(i, currentThread->UserRegisters(i));
+    }
+    
+    newThread->SetUserRegister(PCReg, pCounter);
+    newThread->SetUserRegister(NextPCReg, pCounter+4);
+    
+    // Associate addressSpace to PCB
+    newSpace->pcb = pcb;
+    
+    // Create process id
+    printf("PID: [%d], Fork starts at address [0x%x]\n",
+           currentThread->space->pcb->GetPID(), pCounter);
+    
+    newThread->space = newSpace;
+    
+    newThread->Fork(func, pCounter);
+    
+    machine->WriteRegister(2, pid);
+}
+
+//----------------------------------------------------------------------------
+// Exec(Openfile* file)
+//     Replaces the current process state with a new process executing the
+//     program form a file. Returns -1 to the parent if not successful.
+//     If successful, parent process is replaced with the new running
+//     program from its beginning.
+//---------------------------------------------------------------------------
+
+void Exec(OpenFile* executable) {
+    // Read register r4 to get executable path
+    readPath(path, machine->ReadRegister(4));
+    
+    DEBUG('a', "Exec[%s], initiated by user\n", path);
+    printf("System Call: [%d] invoked Exec\n", currentThread->space->pcb-GetPID());
+    
+    executable = fileSystem->Open(path);
+    
+    // If executable was empty
+    if (executable == NULL) {
+        // return -1 to register 2
+        machine->WriteRegister(2, -1);
+        break;
+    }
+    
+    // Replace the content memory with the content of executable
+    AddrSpace * execSpace = new AddrSpace(executable);
+    
+    // If new address space is empty, return -1 to register 2
+    if (execSpace == NULL) {
+        machine->WriteRegister(2, -1);
+        break;
+    }
+    
+    // Set process ids
+    pid = execSpace->pcb->GetPID();
+    DEBUG('a', "Exec[%s], addrSpace create pid [%d]\n", path, pid);
+    printf("Exeec Program: [%d] loading [%s]\n", pid, path);
+    
+    // Initialize registers
+    if (pid >= 0) {
+        machine->WriteRegister(2, pid);
+    }
+    else {
+        macine->WriteRegister(2, -1);
+    }
+    
+    execSpace->InitRegisters();
 }
