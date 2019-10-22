@@ -172,3 +172,116 @@ void Join (){
     machine->WriteRegister(2,processExitId);
 
 }
+
+void Fork (void (*func)) {
+    DEBUG('a', "Fork initiated by user.\n");
+
+    // Create pcb manager
+    Procman * manager;
+
+    // Save old registers
+    currentThread->space->SaveState();
+    int pid = manager->getID();
+
+    // Create new address space & copy old to new
+    AddrSpace * newSpace;
+    newSpace = currentThread->space->Fork(pid);
+
+    // Create new thread
+    Thread * newThread = new Thread("Forked Thread");
+
+    // Create pcb and associate new address
+    PCB * pcb = new PCB(newThread, pid, currentThread);
+
+    // Complete the PCB and add parent id, etc
+
+    int pCount = machine->ReadRegister(4);
+
+    // Copy old values into new thread
+    for (int i = 0; i < numTotalRegs; i++) {
+        newThread->SetUserRegister(i, currentThread->UserRegisters(i));
+    }
+
+    newThread->SetUserRegister(PCReg, pCounter);
+    newThread->SetUserRegister(NextPCReg, pCounter+4);
+
+    // Associate addressSpace to PCB
+    newSpace->pcb = pcb;
+
+    // Create process id
+    printf("PID: [%d], Fork starts at address [0x%x]\n",
+           currentThread->space->pcb->GetPID(), pCount);
+
+    newThread->space = newSpace;
+    
+// Set new thread behavior
+    newThread->Fork(func, pCount);
+
+    // Write new process pid to r2
+    machine->WriteRegister(2, pid);
+}
+
+//----------------------------------------------------------------------------
+// Exec(Openfile* file)
+//     Replaces the current process state with a new process executing the
+//     program form a file. Returns -1 to the parent if not successful.
+//     If successful, parent process is replaced with the new running
+//     program from its beginning.
+//---------------------------------------------------------------------------
+
+void Exec(OpenFile* executable) {
+    char path[32];
+    int physAddr, pid;
+    int pos = 0, cop = 0;
+    ExceptionType exception;
+
+    // Read register r4 to get executable path
+    while (path[pos++] != 0) {
+        while (exception != NoException) {
+            exception = machine->Translate(machine->ReadRegister(4), &physAddr, 1, FALSE);
+            if (exception != NoException) {
+                machine->RaiseException(exception, machine->ReadRegister(4));
+            }
+        }
+        bcopy(&machine->mainMemory[physAddr], path + cop, 1);
+        cop++;
+        (machine->readRegister(4))++;
+    }
+    path[pos] = '\0';
+
+    DEBUG('a', "Exec[%s], initiated by user\n", path);
+    printf("System Call: [%d] invoked Exec\n", currentThread->space->pcb-GetID());
+
+    executable = fileSystem->Open(path);
+
+    // If executable was empty
+    if (executable == NULL) {
+      // return -1 to register r2
+        machine->WriteRegister(2, -1);
+        break;
+    }
+
+    // Replace the content memory with the content of executable
+    AddrSpace * execSpace = new AddrSpace(executable);
+
+    // If new address space is empty, return -1 to register r2
+    if (execSpace == NULL) {
+        machine->WriteRegister(2, -1);
+        break;
+    }
+
+    // Set process Id
+    pid = execSpace->pcb->GetID();
+    DEBUG('a', "Exec[%s], addrSpace create pid [%d]\n", path, pid);
+    printf("Exeec Program: [%d] loading [%s]\n", pid, path);
+
+    // Initialize registers
+    if (pid >= 0) {
+        machine->WriteRegister(2, pid);
+    }
+    else {
+        machine->WriteRegister(2, -1);
+    }
+
+    execSpace->InitRegisters();
+}
