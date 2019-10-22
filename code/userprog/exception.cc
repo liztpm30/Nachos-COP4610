@@ -64,6 +64,9 @@ void AdjustPC()
 
 void Exit();
 void Join();
+void Fork(*func);
+void Exec();
+void Yield();
 
 void
 ExceptionHandler(ExceptionType which)
@@ -161,7 +164,7 @@ void Join (){
 
     // Make sure the requested process id is the child process of the current process
     /* NEED TO BE IMPLEMENT */
-
+  
     //Keep on checking if the requested process is finished. if not, yield the current process
     /* NEED TO BE IMPLEMENT */
 
@@ -234,21 +237,11 @@ void Exec(OpenFile* executable) {
     int physAddr, pid;
     int pos = 0, cop = 0;
     ExceptionType exception;
-
+    
     // Read register r4 to get executable path
-    while (path[pos++] != 0) {
-        while (exception != NoException) {
-            exception = machine->Translate(machine->ReadRegister(4), &physAddr, 1, FALSE);
-            if (exception != NoException) {
-                machine->RaiseException(exception, machine->ReadRegister(4));
-            }
-        }
-        bcopy(&machine->mainMemory[physAddr], path + cop, 1);
-        cop++;
-        (machine->readRegister(4))++;
-    }
-    path[pos] = '\0';
-
+    
+    int mem = currentThread->space->ReadFile(machine->ReadRegister(4), executable,  
+  
     DEBUG('a', "Exec[%s], initiated by user\n", path);
     printf("System Call: [%d] invoked Exec\n", currentThread->space->pcb-GetID());
 
@@ -284,4 +277,11 @@ void Exec(OpenFile* executable) {
     }
 
     execSpace->InitRegisters();
+}
+
+Yield() {
+    DEBUG('a', "Yield, initiated by user program %s.\n", currentThread->getName());
+    printf("System Call: %d invoked Yield\n", currentThread->space->pcb->GetID());
+   
+    currentThread->Yield; 
 }
