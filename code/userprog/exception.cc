@@ -70,7 +70,7 @@ void Fork(*func);
 void Exec();
 void Yield();
 
-void DummyFunc(int 
+// Implement dummy function
 
 void
 ExceptionHandler(ExceptionType which)
@@ -236,16 +236,11 @@ void Fork (void (*func)) {
 //---------------------------------------------------------------------------
 
 void Exec(OpenFile* executable) {
-    char path[32];
-    int physAddr, pid;
-    int pos = 0, cop = 0;
-    ExceptionType exception;
-    
     // Read register r4 to get executable path
-    
-    int mem = currentThread->space->ReadFile(machine->ReadRegister(4), executable,  
+    // Needs to be implemented
+    int mem = currentThread->space->ReadFile(machine->ReadRegister(4), executable, 1,  
   
-    DEBUG('a', "Exec[%s], initiated by user\n", path);
+    DEBUG('a', "Exec[%s], initiated by user\n",);
     printf("System Call: [%d] invoked Exec\n", currentThread->space->pcb-GetID());
 
     executable = fileSystem->Open(path);
