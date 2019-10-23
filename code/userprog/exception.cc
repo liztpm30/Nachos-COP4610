@@ -70,6 +70,8 @@ void Fork(*func);
 void Exec();
 void Yield();
 
+void DummyFunc(int 
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -94,8 +96,7 @@ ExceptionHandler(ExceptionType which)
             break;
 
         case SC_Join:
-            int result = Join(machine->ReadRegister(4));
-            machine->WriteRegister(2, result);
+            Join();
             break;
 
         case SC_Create:
@@ -155,8 +156,7 @@ void Exit(){
 
     currentThread->Finish();
 }
-
-int Join(SpaceId){
+voi Join(){
 
     DEBUG('a', "Join, initiated by user program.\n");
     printf(" System Call: %d invoked Join", getpid());
