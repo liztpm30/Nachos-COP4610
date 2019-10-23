@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 #include "unistd.h"
+#include "procman.h"
+#include "pcb.h
 
 //----------------------------------------------------------------------
 // ExceptionHandler
