@@ -94,7 +94,8 @@ ExceptionHandler(ExceptionType which)
             break;
 
         case SC_Join:
-            Join();
+            int result = Join(machine->ReadRegister(4));
+            machine->WriteRegister(2, result);
             break;
 
         case SC_Create:
@@ -155,7 +156,7 @@ void Exit(){
     currentThread->Finish();
 }
 
-void Join (){
+int Join(SpaceId){
 
     DEBUG('a', "Join, initiated by user program.\n");
     printf(" System Call: %d invoked Join", getpid());
